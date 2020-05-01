@@ -13,6 +13,7 @@ import java.util.Scanner;
 
 /**
  * I/O handler reused from other projects
+ * 
  * @author Skylark
  *
  */
@@ -97,21 +98,29 @@ public class LucarIO
 				}
 				loader.close();
 
-				while (reader.hasNextLine())
+				int lastNumber = 0;
+				int bufferedBlocks = 100;
+				for (int cycles = 0; cycles <= maxLineSize / bufferedBlocks; cycles++)
 				{
-					counter++;
-					data += reader.nextLine() + "\n";
-					int lastNumber = 0;
-					int current = (int) (Math.round(((double) counter) / (maxLineSize) * 100));
-					if (current != lastNumber)
+					String buffered = "";
+					int limit = 0;
+					while (reader.hasNextLine() && limit <= bufferedBlocks)
 					{
-						// app.print((current + "%"));
-						lastNumber = current;
+						counter++;
+						limit++;
+						buffered += reader.nextLine() + "\n";
+						int current = (int) ((((double) (counter)) / (maxLineSize)) * 100);
+						if (current != lastNumber)
+						{
+							app.print((current + "%"));
+							lastNumber = current;
+						}
 					}
+					data += buffered;
 				}
 
 				reader.close();
-				JOptionPane.showMessageDialog(null, "File loaded successfully");
+				// JOptionPane.showMessageDialog(null, "File loaded successfully");
 				app.print("Done!");
 			}
 		}
@@ -119,7 +128,6 @@ public class LucarIO
 		{
 			app.errorHandler(e);
 		}
-
 		return data;
 	}
 

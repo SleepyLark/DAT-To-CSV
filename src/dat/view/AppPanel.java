@@ -19,7 +19,6 @@ public class AppPanel extends JPanel
 	private SpringLayout appLayout;
 	private JPanel ioPanel;
 	private JPanel regionSelect;
-	private JPanel namePanel;
 	private JButton loadFile;
 	private JButton saveFile;
 	private JCheckBox includeNumber;
@@ -30,6 +29,9 @@ public class AppPanel extends JPanel
 	private JCheckBox removeRegionTag;
 	private JCheckBox size;
 	private JCheckBox convertBytes;
+	private JCheckBox includeSerial;
+	private JCheckBox removeMissingSerial;
+	private JPanel serialPanel;
 	private JPanel sizePanel;
 	private JPanel hashPanel;
 	private JCheckBox crc;
@@ -45,50 +47,44 @@ public class AppPanel extends JPanel
 		super();
 		this.app = app;
 		appLayout = new SpringLayout();
-		mainPanel = new JPanel(new GridLayout(2, 0));
+		GridLayout gl_mainPanel = new GridLayout(0, 4);
+		gl_mainPanel.setVgap(5);
+		gl_mainPanel.setHgap(5);
+		mainPanel = new JPanel(gl_mainPanel);
 		appLayout.putConstraint(SpringLayout.WEST, mainPanel, 10, SpringLayout.WEST, this);
 		appLayout.putConstraint(SpringLayout.SOUTH, mainPanel, -10, SpringLayout.SOUTH, this);
 		ioPanel = new JPanel(new GridLayout(0, 1));
 		appLayout.putConstraint(SpringLayout.NORTH, ioPanel, 10, SpringLayout.NORTH, this);
 		regionSelect = new JPanel(new GridLayout(0, 1));
 		appLayout.putConstraint(SpringLayout.WEST, regionSelect, 38, SpringLayout.WEST, this);
-		region = new JCheckBox("Include Region");
-		removeRegionTag = new JCheckBox("Remove Region from name");
-		removeRegionTag.setEnabled(false);
-		hashPanel = new JPanel(new GridLayout(0, 1));
-		appLayout.putConstraint(SpringLayout.SOUTH, hashPanel, -101, SpringLayout.SOUTH, this);
-		size = new JCheckBox("Include Size");
+		region = new JCheckBox("Include region");
+		region.setToolTipText("");
+		size = new JCheckBox("Include size\r\n");
 		size.setSelected(true);
-		includeNumber = new JCheckBox("Include Release Number");
-		removeNum = new JCheckBox("Keep Release Number in name");
+		includeNumber = new JCheckBox("Include release number\r\n");
+		removeNum = new JCheckBox("Keep release number in name\r\n");
 		numPanel = new JPanel(new GridLayout(0, 1));
 		numPanel.setVisible(false);
 		convertBytes = new JCheckBox("Convert bytes");
 		convertBytes.setSelected(true);
 		sizePanel = new JPanel(new GridLayout(0, 1));
 		appLayout.putConstraint(SpringLayout.EAST, sizePanel, -148, SpringLayout.EAST, this);
-		appLayout.putConstraint(SpringLayout.WEST, hashPanel, 6, SpringLayout.EAST, sizePanel);
 		appLayout.putConstraint(SpringLayout.NORTH, sizePanel, 78, SpringLayout.NORTH, this);
-		crc = new JCheckBox("Include CRC");
-		md5 = new JCheckBox("Include md5");
-		sha1 = new JCheckBox("Include sha1");
-		mergeHash = new JCheckBox("Merge into one column");
-		mergeHash.setEnabled(false);
-		namePanel = new JPanel(new GridLayout(0, 1));
-		removeLanguage = new JCheckBox("Remove Language tag if found");
-		appLayout.putConstraint(SpringLayout.NORTH, removeLanguage, 131, SpringLayout.NORTH, this);
-		appLayout.putConstraint(SpringLayout.SOUTH, regionSelect, -39, SpringLayout.NORTH, removeLanguage);
-		appLayout.putConstraint(SpringLayout.WEST, removeLanguage, 67, SpringLayout.WEST, this);
-
+		includeSerial = new JCheckBox("Include serial");
+		removeMissingSerial = new JCheckBox("Remove missing/unknown");
+		serialPanel = new JPanel(new GridLayout(0,1));
+		serialPanel.setVisible(false);
 		loadFile = new JButton("Load");
 		saveFile = new JButton("Convert");
+		saveFile.setEnabled(false);
 		preview = new JTextArea("Preview");
 		preview.setWrapStyleWord(true);
 		preview.setLineWrap(true);
 		preview.setEditable(false);
 		previewPane = new JScrollPane();
+		appLayout.putConstraint(SpringLayout.EAST, mainPanel, 0, SpringLayout.EAST, previewPane);
 		appLayout.putConstraint(SpringLayout.NORTH, previewPane, 10, SpringLayout.NORTH, this);
-		appLayout.putConstraint(SpringLayout.WEST, previewPane, 0, SpringLayout.WEST, mainPanel);
+		appLayout.putConstraint(SpringLayout.WEST, previewPane, 10, SpringLayout.WEST, this);
 		appLayout.putConstraint(SpringLayout.SOUTH, previewPane, 0, SpringLayout.NORTH, mainPanel);
 		appLayout.putConstraint(SpringLayout.EAST, previewPane, -5, SpringLayout.WEST, ioPanel);
 		appLayout.putConstraint(SpringLayout.WEST, ioPanel, 6, SpringLayout.EAST, preview);
@@ -110,21 +106,39 @@ public class AppPanel extends JPanel
 		this.add(mainPanel);
 		this.add(ioPanel);
 		mainPanel.add(regionSelect);
-		mainPanel.add(hashPanel);
 		mainPanel.add(sizePanel);
-		mainPanel.add(namePanel);
-		mainPanel.add(numPanel);
-		numPanel.add(includeNumber);
-		numPanel.add(removeNum);
-		namePanel.add(removeLanguage);
-		sizePanel.add(size);
-		sizePanel.add(convertBytes);
+		hashPanel = new JPanel(new GridLayout(0, 1));
+		appLayout.putConstraint(SpringLayout.SOUTH, hashPanel, -101, SpringLayout.SOUTH, this);
+		appLayout.putConstraint(SpringLayout.WEST, hashPanel, 6, SpringLayout.EAST, sizePanel);
+		crc = new JCheckBox("Include CRC");
+		md5 = new JCheckBox("Include MD5");
+		sha1 = new JCheckBox("Include SHA1");
+		mergeHash = new JCheckBox("Merge into one column");
+		mergeHash.setEnabled(false);
+		mainPanel.add(hashPanel);
 		hashPanel.add(crc);
 		hashPanel.add(md5);
 		hashPanel.add(sha1);
 		hashPanel.add(mergeHash);
+		mainPanel.add(numPanel);
+		mainPanel.add(serialPanel);
+		serialPanel.add(includeSerial);
+		serialPanel.add(removeMissingSerial);
+		numPanel.add(includeNumber);
+		numPanel.add(removeNum);
+		sizePanel.add(size);
+		sizePanel.add(convertBytes);
 		regionSelect.add(region);
+		removeRegionTag = new JCheckBox("Remove region from name");
+		removeRegionTag.setToolTipText("(i.e. \"Super Mario 64 (USA)\" -> \"Super Mario 64\")");
+		removeRegionTag.setEnabled(false);
 		regionSelect.add(removeRegionTag);
+		removeLanguage = new JCheckBox("Remove language tag\r\n");
+		removeLanguage.setToolTipText("Not 100% accurate, but will detect most tags");
+		appLayout.putConstraint(SpringLayout.NORTH, removeLanguage, 131, SpringLayout.NORTH, this);
+		appLayout.putConstraint(SpringLayout.SOUTH, regionSelect, -39, SpringLayout.NORTH, removeLanguage);
+		appLayout.putConstraint(SpringLayout.WEST, removeLanguage, 67, SpringLayout.WEST, this);
+		regionSelect.add(removeLanguage);
 		ioPanel.add(loadFile);
 		ioPanel.add(saveFile);
 		this.add(previewPane);
@@ -152,7 +166,10 @@ public class AppPanel extends JPanel
 				app.loadFile();
 				numPanel.setVisible(app.hasReleaseNumber());
 				includeNumber.setSelected(app.hasReleaseNumber());
+				serialPanel.setVisible(app.hasSerial());
+				includeSerial.setSelected(app.hasSerial());
 				updateDisplay();
+				saveFile.setEnabled(true);
 			}
 		});
 
@@ -161,7 +178,7 @@ public class AppPanel extends JPanel
 			public void actionPerformed(ActionEvent click)
 			{
 				app.saveFile(includeNumber.isSelected(), size.isSelected(), convertBytes.isSelected(), region.isSelected(), removeRegionTag.isSelected(), crc.isSelected(), md5.isSelected(),
-						sha1.isSelected(), mergeHash.isSelected(), removeLanguage.isSelected(), removeNum.isSelected());
+						sha1.isSelected(), mergeHash.isSelected(), removeLanguage.isSelected(), !removeNum.isSelected(),includeSerial.isSelected(), removeMissingSerial.isSelected());
 			}
 		});
 
@@ -200,6 +217,23 @@ public class AppPanel extends JPanel
 		});
 
 		removeRegionTag.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent click)
+			{
+				updateDisplay();
+			}
+		});
+		
+		includeSerial.addActionListener(new ActionListener()
+		{
+			public void actionPerformed(ActionEvent click)
+			{
+				removeMissingSerial.setEnabled(includeSerial.isSelected());
+				removeMissingSerial.setSelected(false);
+				updateDisplay();
+			}
+		});
+		removeMissingSerial.addActionListener(new ActionListener()
 		{
 			public void actionPerformed(ActionEvent click)
 			{
@@ -277,7 +311,7 @@ public class AppPanel extends JPanel
 	protected void updateDisplay()
 	{
 		preview.setText(app.getPreview(includeNumber.isSelected(), size.isSelected(), convertBytes.isSelected(), region.isSelected(), removeRegionTag.isSelected(),
-				crc.isSelected(), md5.isSelected(), sha1.isSelected(), mergeHash.isSelected(), removeLanguage.isSelected(), !removeNum.isSelected()));
+				crc.isSelected(), md5.isSelected(), sha1.isSelected(), mergeHash.isSelected(), removeLanguage.isSelected(), !removeNum.isSelected(), includeSerial.isSelected(), removeMissingSerial.isSelected()));
 		repaint();
 	}
 }

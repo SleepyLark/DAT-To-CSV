@@ -31,22 +31,54 @@ public class DatViewer
 	{
 		largeFile = false;
 		loadedFile = io.loadString();
-		if (loadedFile != null)
+		if (loadedFile != null && !loadedFile.isEmpty())
 		{
 			if (!(findTag("!DOCTYPE", true) || findTag("datafile", true)))
 				app.errorHandler("This is not a .dat file");
 
 			currentDat.setTitle(getTag("name", false));
 			currentDat.setVersion(getTag("version", false));
-			currentDat.setGames(this.getTags("game", false, loadedFile));
-			
-			if(currentDat.getGames().size() >= 1000)
+			currentDat.setHasSerial(loadedFile.contains("serial="));
+			if (getTag("url", false).contains("no-intro"))
 			{
-				String[] option = {"Yes", "No"};
-				int choice = JOptionPane.showOptionDialog(null,"There are "+ currentDat.getGames().size() + " entries listed.\n Preview is still possible, however it will be slower.\n Would you like to reduce the limit to 500?","Warning",JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, option, option[0]);
-				if(choice == 0)
+				currentDat.setGames(this.getTags("game", false, loadedFile));
+
+				if (currentDat.getGames().size() >= 2000)
 				{
-					largeFile = true;
+					String[] option = { "Yes", "No" };
+					int choice = JOptionPane.showOptionDialog(null,
+							"There are " + currentDat.getGames().size()
+									+ " entries listed.\n Preview is still possible, however it will be slower.\n Would you like to reduce the limit to 500?",
+							"Warning", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, option, option[0]);
+					if (choice == 0)
+					{
+						largeFile = true;
+					}
+				}
+			}
+			else if (getTag("url", false).contains("redump"))
+			{
+				app.errorHandler("Redump.org is not supported yet.");
+			}
+			else
+			{
+				String[] option = { "Yes", "No" };
+				int choice = JOptionPane.showOptionDialog(null,"Couldn't recongize file as No-Intro/Redump,\n are you sure you want to continue?","Warning", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, option, option[0]);
+				if (choice==0)
+				{
+					currentDat.setGames(this.getTags("game", false, loadedFile));
+
+					if (currentDat.getGames().size() >= 2000)
+					{
+						 choice = JOptionPane.showOptionDialog(null,
+								"There are " + currentDat.getGames().size()
+										+ " entries listed.\n Preview is still possible, however it will be slower.\n Would you like to reduce the limit to 500?",
+								"Warning", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, option, option[0]);
+						if (choice == 0)
+						{
+							largeFile = true;
+						}
+					}
 				}
 			}
 		}
@@ -56,6 +88,11 @@ public class DatViewer
 	public boolean hasReleaseNumber()
 	{
 		return currentDat.isNumbered();
+	}
+
+	public boolean hasSerial()
+	{
+		return currentDat.hasSerial();
 	}
 
 	public boolean findTag(String tag, boolean noEndTag)
@@ -174,15 +211,15 @@ public class DatViewer
 	}
 
 	public void export(boolean includeNum, boolean includeSize, boolean convertBytes, boolean includeRegion, boolean removeRegionTag, boolean includeCRC, boolean includeMD5,
-			boolean includeSHA1, boolean mergeHash, boolean removeLanguage, boolean removeNum)
+			boolean includeSHA1, boolean mergeHash, boolean removeLanguage, boolean removeNum, boolean includeSerial, boolean removeMissingSerial)
 	{
 		largeFile = false;
-		io.saveString(
-				makePreview(includeNum, includeSize, convertBytes, includeRegion, removeRegionTag, includeCRC, includeMD5, includeSHA1, mergeHash, removeLanguage, removeNum));
+		io.saveString(makePreview(includeNum, includeSize, convertBytes, includeRegion, removeRegionTag, includeCRC, includeMD5, includeSHA1, mergeHash, removeLanguage, removeNum,
+				includeSerial, removeMissingSerial));
 	}
 
 	private String convertGameToRow(String entry, boolean includeNum, boolean includeSize, boolean convertBytes, boolean includeRegion, boolean removeRegionTag, boolean includeCRC,
-			boolean includeMD5, boolean includeSHA1, boolean mergeHash, boolean removeLanguage, boolean removeNum)
+			boolean includeMD5, boolean includeSHA1, boolean mergeHash, boolean removeLanguage, boolean removeNum, boolean includeSerial, boolean removeMissingSerial)
 	{
 		String rowData = "";
 
@@ -218,6 +255,19 @@ public class DatViewer
 
 		if (includeRegion)
 			rowData += "\"" + region + "\",";
+
+		if (includeSerial)
+		{
+			String serialID = findQuoteParameter(this.getTag("rom", false, true, entry), "serial=").trim();
+			if (serialID.isEmpty())
+				serialID = "UNKNOWN";
+			if (removeMissingSerial && (serialID.toLowerCase().contains("missing") || serialID.toLowerCase().contains("none") || serialID.toLowerCase().contains("unknown")))
+			{
+				serialID = "";
+			}
+
+			rowData += serialID+",";
+		}
 
 		if (includeSize)
 		{
@@ -261,34 +311,30 @@ public class DatViewer
 		}
 		else
 		{
-			
-			if (includeCRC)
-				hash += "\""+crc + "\",";
-			if (includeMD5)
-				hash += "\""+md5 + "\",";
-			if (includeSHA1)
-				hash += "\""+sha1 + "\",";
-		}
-		
-		rowData += hash;
 
-		String serialID = findQuoteParameter(this.getTag("rom", false, true, entry), "serial=").trim();
-		if (serialID.isEmpty())
-			serialID = "UNKNOWN";
+			if (includeCRC)
+				hash += "\"" + crc + "\",";
+			if (includeMD5)
+				hash += "\"" + md5 + "\",";
+			if (includeSHA1)
+				hash += "\"" + sha1 + "\",";
+		}
+
+		rowData += hash;
 
 		return rowData;
 	}
 
 	public String makePreview(boolean includeNum, boolean includeSize, boolean convertBytes, boolean includeRegion, boolean removeRegionTag, boolean includeCRC, boolean includeMD5,
-			boolean includeSHA1, boolean mergeHash, boolean removeLanguage, boolean removeNum)
+			boolean includeSHA1, boolean mergeHash, boolean removeLanguage, boolean removeNum, boolean includeSerial, boolean removeMissingSerial)
 	{
 		String preview = "";
 		int limit = currentDat.getGames().size();
-		if(largeFile)
+		if (largeFile)
 			limit = 500;
 		for (int index = 0; index < limit; index++)
 			preview += convertGameToRow(currentDat.getGames().get(index), includeNum, includeSize, convertBytes, includeRegion, removeRegionTag, includeCRC, includeMD5,
-					includeSHA1, mergeHash, removeLanguage, removeNum) + "\n";
+					includeSHA1, mergeHash, removeLanguage, removeNum, includeSerial, removeMissingSerial) + "\n";
 		return preview;
 	}
 
@@ -471,31 +517,26 @@ public class DatViewer
 		{
 			if (filesize >= 1048576)
 			{
-
-				size = toMegaBytes(filesize) + "MB";
+				if (filesize >= 1073741824)
+				{
+					size = io.toGigaBytes(filesize) + " GB";
+				}
+				else
+				{
+					size = io.toMegaBytes(filesize) + " MB";
+				}
 			}
 			else
 			{
-				size = toKiloBytes(filesize) + "KB";
+				size = io.toKiloBytes(filesize) + " KB";
 			}
 		}
 		else
 		{
-			size = filesize + "bytes";
+			size = filesize + " bytes";
 		}
 
 		return size;
-	}
-
-	public long toKiloBytes(long fileBytes)
-	{
-		return fileBytes / 1024;
-	}
-
-	public long toMegaBytes(long fileBytes)
-	{
-
-		return toKiloBytes(fileBytes) / 1024;
 	}
 
 	public void setLoadedFile(String text)
