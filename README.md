@@ -1,2 +1,2 @@
-# DAT-To-CSV
-Converts No-Intro .DAT to .CSV (Comma Separated Values)
+# DatToCSV
+ Converts No-Intro .DAT to .CSV
