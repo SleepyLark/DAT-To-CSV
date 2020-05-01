@@ -1,4 +1,4 @@
-# DatToCSV
+# Dat-To-CSV
  Converts No-Intro .DAT to .CSV
 ## Overview
 Originally started off as a program that would extract HTML tags from a file which I later modified to help with [nds-bootstrap](https://github.com/ahezard/nds-bootstrap)'s compatibility list.  I've since extended it to work with other .DAT files and be more user-friendly.  So far I've only tested it with the Nintendo DS, DSi (Digital & Decrypted), Game Boy, and Game Boy Advance .DATs and have all worked, but should work with other non-Nintendo system.
