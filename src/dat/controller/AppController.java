@@ -29,19 +29,22 @@ public class AppController
 	public void saveFile(boolean includeNum, boolean includeSize, boolean convertBytes, boolean includeRegion, boolean removeRegionTag, boolean includeCRC, boolean includeMD5,
 			boolean includeSHA1, boolean mergeHash, boolean removeLanguage, boolean removeNum, boolean includeSerial, boolean removeMissingSerial)
 	{
-		reader.export(includeNum, includeSize, convertBytes, includeRegion, removeRegionTag, includeCRC, includeMD5, includeSHA1, mergeHash, removeLanguage, removeNum, includeSerial, removeMissingSerial);
+		reader.export(includeNum, includeSize, convertBytes, includeRegion, removeRegionTag, includeCRC, includeMD5, includeSHA1, mergeHash, removeLanguage, removeNum,
+				includeSerial, removeMissingSerial);
 	}
 
 	public String getPreview(boolean includeNum, boolean includeSize, boolean convertBytes, boolean includeRegion, boolean removeRegionTag, boolean includeCRC, boolean includeMD5,
 			boolean includeSHA1, boolean mergeHash, boolean removeLanguage, boolean removeNum, boolean includeSerial, boolean removeMissingSerial)
 	{
-		return reader.makePreview(includeNum, includeSize, convertBytes, includeRegion, removeRegionTag, includeCRC, includeMD5, includeSHA1, mergeHash, removeLanguage, removeNum, includeSerial, removeMissingSerial);
+		return reader.makePreview(includeNum, includeSize, convertBytes, includeRegion, removeRegionTag, includeCRC, includeMD5, includeSHA1, mergeHash, removeLanguage, removeNum,
+				includeSerial, removeMissingSerial);
 	}
-	
+
 	public boolean hasReleaseNumber()
 	{
 		return reader.hasReleaseNumber();
 	}
+
 	public boolean hasSerial()
 	{
 		return reader.hasSerial();
@@ -62,5 +65,4 @@ public class AppController
 		System.out.println(word);
 	}
 
-	
 }

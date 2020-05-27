@@ -57,7 +57,7 @@ public class DatFile
 	public void setGames(ArrayList<String> games)
 	{
 		this.game = games;
-		hasReleaseNumber = game.get(0).contains("0001 - ");
+		hasReleaseNumber = game.get(0).contains("0001 - ");  //if the first game starts with this number then it's implied that they all have release numbers
 	}
 
 	public void setTitle(String title)
