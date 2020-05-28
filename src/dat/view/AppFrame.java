@@ -33,7 +33,7 @@ public class AppFrame extends JFrame
 	{
 		this.setContentPane(appPanel);
 		this.setIconImage(icon.getImage());
-		this.setTitle("DAT to CSV [v0.2]");
+		this.setTitle("DAT to CSV [v0.3]");
 		this.setResizable(true);
 		this.setVisible(true);
 		this.setSize(new Dimension(600,350));

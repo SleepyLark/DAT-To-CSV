@@ -177,8 +177,7 @@ public class AppPanel extends JPanel
 		{
 			public void actionPerformed(ActionEvent click)
 			{
-				app.saveFile(includeNumber.isSelected(), size.isSelected(), convertBytes.isSelected(), region.isSelected(), removeRegionTag.isSelected(), crc.isSelected(), md5.isSelected(),
-						sha1.isSelected(), mergeHash.isSelected(), removeLanguage.isSelected(), !removeNum.isSelected(),includeSerial.isSelected(), removeMissingSerial.isSelected());
+				app.saveFile();
 			}
 		});
 
@@ -308,10 +307,29 @@ public class AppPanel extends JPanel
 		});
 	}
 
+	/**
+	 * takes boolean values from checkboxes and put it into the array
+	 */
+	private void parseBooleanData()
+	{
+		app.setSelectionData(app.INCLUDE_NUM, includeNumber.isSelected());
+		app.setSelectionData(app.INCLUDE_SIZE, size.isSelected());
+		app.setSelectionData(app.CONVERT_BYTE, convertBytes.isSelected());
+		app.setSelectionData(app.INCLUDE_REGION, region.isSelected());
+		app.setSelectionData(app.REMOVE_REGION_TAG, removeRegionTag.isSelected());
+		app.setSelectionData(app.INCLUDE_CRC, crc.isSelected());
+		app.setSelectionData(app.INCLUDE_MD5, md5.isSelected());
+		app.setSelectionData(app.INCLUDE_SHA1, sha1.isSelected());
+		app.setSelectionData(app.MERGE_HASH, mergeHash.isSelected());
+		app.setSelectionData(app.REMOVE_NUM, !removeNum.isSelected());//inverse
+		app.setSelectionData(app.INCLUDE_SERIAL, includeSerial.isSelected());
+		app.setSelectionData(app.REMOVE_MISSING_SERIAL, removeMissingSerial.isSelected());
+		app.setSelectionData(app.REMOVE_LANGUAGE, removeLanguage.isSelected());
+	}
 	protected void updateDisplay()
 	{
-		preview.setText(app.getPreview(includeNumber.isSelected(), size.isSelected(), convertBytes.isSelected(), region.isSelected(), removeRegionTag.isSelected(),
-				crc.isSelected(), md5.isSelected(), sha1.isSelected(), mergeHash.isSelected(), removeLanguage.isSelected(), !removeNum.isSelected(), includeSerial.isSelected(), removeMissingSerial.isSelected()));
+		parseBooleanData();
+		preview.setText(app.getPreview());
 		repaint();
 	}
 }

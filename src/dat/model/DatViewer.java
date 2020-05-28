@@ -15,6 +15,8 @@ public class DatViewer
 	private LucarIO io;
 	private DatFile currentDat;
 	private String[][] values;
+	// switching to array instead of having to enter 13 parameters
+	private boolean[] selectionData;
 	private boolean largeFile;
 
 	public DatViewer(AppController app)
@@ -22,6 +24,7 @@ public class DatViewer
 		this.app = app;
 
 		io = new LucarIO(app);
+		selectionData = new boolean[13];
 		currentDat = new DatFile(app);
 		loadedFile = "";
 		largeFile = false;
@@ -285,26 +288,11 @@ public class DatViewer
 	 * Generates a CSV list using {@link #makePreview()} and saves it to a file
 	 * using {@link #LucarIO.saveString()}
 	 * 
-	 * @param includeNum
-	 * @param includeSize
-	 * @param convertBytes
-	 * @param includeRegion
-	 * @param removeRegionTag
-	 * @param includeCRC
-	 * @param includeMD5
-	 * @param includeSHA1
-	 * @param mergeHash
-	 * @param removeLanguage
-	 * @param removeNum
-	 * @param includeSerial
-	 * @param removeMissingSerial
 	 */
-	public void export(boolean includeNum, boolean includeSize, boolean convertBytes, boolean includeRegion, boolean removeRegionTag, boolean includeCRC, boolean includeMD5,
-			boolean includeSHA1, boolean mergeHash, boolean removeLanguage, boolean removeNum, boolean includeSerial, boolean removeMissingSerial)
+	public void export()
 	{
 		largeFile = false;
-		io.saveString(makePreview(includeNum, includeSize, convertBytes, includeRegion, removeRegionTag, includeCRC, includeMD5, includeSHA1, mergeHash, removeLanguage, removeNum,
-				includeSerial, removeMissingSerial));
+		io.saveString(makePreview());
 	}
 
 	/**
@@ -312,23 +300,10 @@ public class DatViewer
 	 * 
 	 * @param entry
 	 *            The block of code for the entry
-	 * @param includeNum
-	 * @param includeSize
-	 * @param convertBytes
-	 * @param includeRegion
-	 * @param removeRegionTag
-	 * @param includeCRC
-	 * @param includeMD5
-	 * @param includeSHA1
-	 * @param mergeHash
-	 * @param removeLanguage
-	 * @param removeNum
-	 * @param includeSerial
-	 * @param removeMissingSerial
+	 * 
 	 * @return a row with all the information in CSV format
 	 */
-	private String convertGameToRow(String entry, boolean includeNum, boolean includeSize, boolean convertBytes, boolean includeRegion, boolean removeRegionTag, boolean includeCRC,
-			boolean includeMD5, boolean includeSHA1, boolean mergeHash, boolean removeLanguage, boolean removeNum, boolean includeSerial, boolean removeMissingSerial)
+	private String convertGameToRow(String entry)
 	{
 		// I made it so the order of booleans in the parameter matches the order in
 		// which the data is added.
@@ -347,7 +322,7 @@ public class DatViewer
 			// (Ex. "0001 - Cool Game -> "0001")
 			releaseNum = name.substring(0, 5);
 
-			if (includeNum)
+			if (selectionData[app.INCLUDE_NUM])
 				rowData += "\"" + releaseNum + "\",";
 		}
 
@@ -356,7 +331,7 @@ public class DatViewer
 		String region = name.substring(name.indexOf("(") + 1, name.indexOf(")"));
 
 		// If there is a release number and that number should be removed
-		if (removeNum && currentDat.isNumbered())
+		if (selectionData[app.REMOVE_NUM] && currentDat.isNumbered())
 			// Release numbers usually have this format: "0001 - Cool Game", meaning the
 			// name starts on the index 7
 			name = name.substring(7);
@@ -365,10 +340,10 @@ public class DatViewer
 		// TODO: Find and replace every special character option
 		name = name.replace("&amp;", "&");
 
-		if (removeRegionTag)
+		if (selectionData[app.REMOVE_REGION_TAG])
 			name = name.replace(" (" + region + ")", "");
 
-		if (removeLanguage)
+		if (selectionData[app.REMOVE_LANGUAGE])
 		{
 			if (name.contains("("))
 			{
@@ -379,23 +354,24 @@ public class DatViewer
 					name = name.replace("(" + endTag + ")", "");
 			}
 		}
-		
+
 		// add name to row
 		rowData += "\"" + name.trim() + "\",";
 
 		// adds region to row
-		if (includeRegion)
+		if (selectionData[app.INCLUDE_REGION])
 			rowData += "\"" + region + "\",";
 
-		// Try and find serial ID if found 
-		if (includeSerial)
+		// Try and find serial ID if found
+		if (selectionData[app.INCLUDE_SERIAL])
 		{
 			String serialID = findQuoteParameter(this.getTag("rom", false, true, entry), "serial=").trim();
 			if (serialID.isEmpty())
 				serialID = "UNKNOWN";
-			
+
 			// Make missing serial IDs empty instead of "UNKNOWN"
-			if (removeMissingSerial && (serialID.toLowerCase().contains("missing") || serialID.toLowerCase().contains("none") || serialID.toLowerCase().contains("unknown")))
+			if (selectionData[app.REMOVE_MISSING_SERIAL]
+					&& (serialID.toLowerCase().contains("missing") || serialID.toLowerCase().contains("none") || serialID.toLowerCase().contains("unknown")))
 			{
 				serialID = "";
 			}
@@ -404,16 +380,16 @@ public class DatViewer
 			rowData += serialID + ",";
 		}
 
-		
-		if (includeSize)
+		if (selectionData[app.INCLUDE_SIZE])
 		{
 			// find byte size
 			String size = findQuoteParameter(this.getTag("rom", false, true, entry), "size=");
-			
-			// convert bytes to human readable format, else it will stay as it's exact byte value
-			if (convertBytes)
+
+			// convert bytes to human readable format, else it will stay as it's exact byte
+			// value
+			if (selectionData[app.CONVERT_BYTE])
 				size = this.getSize(Long.parseLong(size));
-			
+
 			// adds size to row
 			rowData += size + ",";
 		}
@@ -423,28 +399,28 @@ public class DatViewer
 		String sha1 = "SHA1: ";
 		String hash = "";
 
-		if (includeCRC)
+		if (selectionData[app.INCLUDE_CRC])
 			crc += findQuoteParameter(this.getTag("rom", false, true, entry), "crc=");
-		if (includeMD5)
+		if (selectionData[app.INCLUDE_MD5])
 			md5 += findQuoteParameter(this.getTag("rom", false, true, entry), "md5=");
-		if (includeSHA1)
+		if (selectionData[app.INCLUDE_SHA1])
 			sha1 += findQuoteParameter(this.getTag("rom", false, true, entry), "sha1=");
 
-		if (mergeHash)
+		if (selectionData[app.MERGE_HASH])
 		{
 			hash = "\"";
-			if (includeCRC)
+			if (selectionData[app.INCLUDE_CRC])
 			{
 				hash += crc;
-				if (includeMD5)
+				if (selectionData[app.INCLUDE_MD5])
 					hash += " " + md5;
-				if (includeSHA1)
+				if (selectionData[app.INCLUDE_SHA1])
 					hash += " " + sha1;
 			}
-			else if (includeMD5)
+			if (selectionData[app.INCLUDE_MD5])
 			{
 				hash += md5;
-				if (includeSHA1)
+				if (selectionData[app.INCLUDE_SHA1])
 					hash += " " + sha1;
 			}
 			hash += "\"";
@@ -453,11 +429,11 @@ public class DatViewer
 		else
 		{
 
-			if (includeCRC)
+			if (selectionData[app.INCLUDE_CRC])
 				hash += "\"" + crc + "\",";
-			if (includeMD5)
+			if (selectionData[app.INCLUDE_MD5])
 				hash += "\"" + md5 + "\",";
-			if (includeSHA1)
+			if (selectionData[app.INCLUDE_SHA1])
 				hash += "\"" + sha1 + "\",";
 		}
 
@@ -469,34 +445,20 @@ public class DatViewer
 
 	/**
 	 * Loops {@link #convertGameToRow()} for every entry and prints the entire list
-	 * @param includeNum
-	 * @param includeSize
-	 * @param convertBytes
-	 * @param includeRegion
-	 * @param removeRegionTag
-	 * @param includeCRC
-	 * @param includeMD5
-	 * @param includeSHA1
-	 * @param mergeHash
-	 * @param removeLanguage
-	 * @param removeNum
-	 * @param includeSerial
-	 * @param removeMissingSerial
+	 * 
 	 * @return a String with every entry as CSV
 	 */
-	public String makePreview(boolean includeNum, boolean includeSize, boolean convertBytes, boolean includeRegion, boolean removeRegionTag, boolean includeCRC, boolean includeMD5,
-			boolean includeSHA1, boolean mergeHash, boolean removeLanguage, boolean removeNum, boolean includeSerial, boolean removeMissingSerial)
+	public String makePreview()
 	{
 		String preview = "";
 		int limit = currentDat.getGames().size();
 		// If there's a lot of entries, only show a certain amount
-		//TODO: Add option to have user change what the make amount to be.
+		// TODO: Add option to have user change what the make amount to be.
 		// Maybe add option to select which entries to see.
 		if (largeFile)
 			limit = 500;
 		for (int index = 0; index < limit; index++)
-			preview += convertGameToRow(currentDat.getGames().get(index), includeNum, includeSize, convertBytes, includeRegion, removeRegionTag, includeCRC, includeMD5,
-					includeSHA1, mergeHash, removeLanguage, removeNum, includeSerial, removeMissingSerial) + "\n";
+			preview += convertGameToRow(currentDat.getGames().get(index)) + "\n";
 		return preview;
 	}
 
@@ -504,8 +466,7 @@ public class DatViewer
 	 * Converts it into a CSV specifically for NDS-Bootstrap's compatibility list
 	 * <br>
 	 * (May remove as there's no purpose for it and was only used as a reference for
-	 * {@link #convertGameToRow(String, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean)
-	 * convertGameToRow()} )
+	 * {@link #convertGameToRow()} )
 	 */
 	public void datomaticNDSToCSV()
 	{
@@ -626,6 +587,7 @@ public class DatViewer
 
 	/**
 	 * Used for NDS-Bootstrap, has the region ID for Nintendo cartridges
+	 * 
 	 * @param region
 	 * @return a three letter ID
 	 */
@@ -691,7 +653,9 @@ public class DatViewer
 
 	/**
 	 * Converts bytes to a human readable format
-	 * @param filesize size in bytes
+	 * 
+	 * @param filesize
+	 *            size in bytes
 	 * @return a String with the simplified value
 	 */
 	public String getSize(long filesize)
@@ -728,5 +692,15 @@ public class DatViewer
 	public void setLoadedFile(String text)
 	{
 		loadedFile = text;
+	}
+
+	public void setSelectionData(int index, boolean state)
+	{
+		selectionData[index] = state;
+	}
+
+	public boolean[] getSelectionData()
+	{
+		return selectionData;
 	}
 }
