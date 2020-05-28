@@ -113,7 +113,8 @@ public class DatViewer
 	 */
 	public boolean findTag(String tag, boolean noEndTag)
 	{
-		return !(getTag(tag, noEndTag, true, loadedFile) == null);
+		app.print("findTag() was used...");
+		return loadedFile.contains("<"+tag);
 	}
 
 	/**
