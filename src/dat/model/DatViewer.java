@@ -58,7 +58,7 @@ public class DatViewer
 			// determine if it's cartridge-based or disc-based
 			// TODO: figure out if there's a way to auto-detect without needing the user's
 			// input. Add fail safe in case user accidentally clicks the wrong button
-			String[] selectType = { "Cartridge", "Disc" };
+			String[] selectType = { "No BIN+CUE (Most Common)", "BIN+CUE" };
 			int choice = JOptionPane.showOptionDialog(null, "Select ROM type\n(Failure to select the correct type will lead to improper results)", "Select Type",
 					JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, selectType, selectType[0]);
 			if (choice == 0)
@@ -84,7 +84,7 @@ public class DatViewer
 			}
 			else
 			{
-
+				
 			}
 		}
 	}
